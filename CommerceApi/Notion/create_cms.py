@@ -3,28 +3,27 @@ from CommerceApi.Notion.manager import NotionClient
 from CommerceApi.config import Config
 from CommerceApi.utils.mongo import Mongoify
 import time
-import uuid
+
 
 class BuildStep:
     def __init__(self, method, *args):
         self.method = method
         self.args = args
         self.callback = None
-        
+
     async def execute(self):
         result = self.method(*self.args)
         if self.callback:
             await self.callback(result)
+
 
 class CMSBuilder:
     def __init__(self):
         self.mongo_client = Mongoify
         self.base_page_id = Config.base_page_id
         self.build_queue = []
-        self.parent = {
-            "type": "page_id",
-            "page_id": self.base_page_id
-        }
+        self.TABLE = "component_config"
+        self.parent = {"type": "page_id", "page_id": self.base_page_id}
 
     async def maybe_create_cms(self) -> None:
         if not await self.cms_already_built():
@@ -33,7 +32,7 @@ class CMSBuilder:
             print("cms built")
 
     async def cms_already_built(self) -> bool:
-        result = await Mongoify.find_one("component_config", {"parent_id": self.base_page_id})
+        result = await Mongoify.find_one(self.TABLE, {"parent_id": self.base_page_id})
         print(result)
         if result:
             return True
@@ -45,14 +44,14 @@ class CMSBuilder:
         self.create_product_block()
         self.create_product_table()
         for command in self.build_queue:
-            time.sleep(.3)
+            time.sleep(0.3)
             await command.execute()
-            
+
     def create_order_block(self):
         data = content.order_content_block
         method = NotionClient.append_block_children
         self._add_build_step(method, self.base_page_id, data)
-    
+
     def create_product_block(self):
         data = content.product_content_block
         method = NotionClient.append_block_children
@@ -76,15 +75,19 @@ class CMSBuilder:
         return step
 
     async def handle_order_callback(self, result):
-        data = result.dict()
-        data["component_name"] = "order_database"
-        data["parent_id"] = result.parent.id
-        await Mongoify.update("component_config", {"component_name": "order_database"}, data)
+        component = "order_database"
+        data = self.format_payload(result, component)
+        await Mongoify.update(self.TABLE, {"component_name": component}, data)
 
     async def handle_product_callback(self, result):
-        data = result.dict()
-        data["component_name"] = "product_database"
-        data["parent_id"] = result.parent.id
-        print(data)
-        await Mongoify.update("component_config", {"component_name": "product_database"}, data)
+        component = "product_database"
+        data = self.format_payload(result, component)
+        await Mongoify.update(self.TABLE, {"component_name": component}, data)
 
+    @staticmethod
+    def format_payload(result, component):
+        data = result.dict()
+        data["component_name"] = component
+        data["parent_id"] = result.parent.id
+        data["last_updated"] = result.created_time
+        return data

@@ -8,25 +8,17 @@ def products_schema(parent: dict):
                 "url": "https://cdn11.bigcommerce.com/s-ljboqq8dd6/product_images/uploaded_images/bhs-track-your-order-banner.jpg"
             },
         },
-        "title": [{"type": "text", "text": {"content": "Product Listings", "link": None}}],
+        "title": [
+            {"type": "text", "text": {"content": "Product Listings", "link": None}}
+        ],
         "properties": {
             "Product Info": {"title": {}},
-            "categories": {
-                "multi_select": {
-                    "options": [
-                    ]
-                }
-            },
-            "coupon codes (optional)": {
-                "multi_select": {
-                    "options": [
-                    ]
-                }
-            },
+            "categories": {"multi_select": {"options": []}},
+            "coupon codes (optional)": {"multi_select": {"options": []}},
             "display on site": {"checkbox": {}},
             "images (must embed)": {"files": {}},
-            "email": {"email": {}},
-            "phone": {"phone_number": {}},
-            "price": {"number": {'format': 'dollar'}},
+            "updated": {"last_edited_time": {}},
+            "price": {"number": {"format": "dollar"}},
+            "url (auto generated)": {"url": {}},
         },
     }

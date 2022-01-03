@@ -1,7 +1,6 @@
 import requests, json
 from CommerceApi.models.notion import NotionObject
-
-token = "secret_sUSp4QpPDl36tfbZzFQwEyqCOSrzirqWB13aFKepgps"
+from CommerceApi.config import Config
 
 
 class NotionClient:
@@ -10,7 +9,7 @@ class NotionClient:
     session.headers = {
         "Content-Type": "application/json",
         "Notion-Version": "2021-08-16",
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {Config.notion_token}",
     }
 
     @classmethod
@@ -53,9 +52,10 @@ class NotionClient:
         )
 
     @classmethod
-    def query_database(cls, database_id):
-        print(f"{cls.url}/databases/{database_id}")
-        return cls.session.request("POST", f"{cls.url}/databases/{database_id}/query")
+    def query_database(cls, database_id, data={}):
+        return cls.session.request(
+            "POST", f"{cls.url}/databases/{database_id}/query", json=data
+        )
 
     @staticmethod
     def create_object(response):

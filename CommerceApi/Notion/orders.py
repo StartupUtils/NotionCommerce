@@ -26,7 +26,7 @@ def orders_schema(parent: dict):
             "email": {"email": {}},
             "phone": {"phone_number": {}},
             "order date": {"date": {}},
-            "order price": {"number": {'format': 'dollar'}},
+            "order price": {"number": {"format": "dollar"}},
         },
     }
 
